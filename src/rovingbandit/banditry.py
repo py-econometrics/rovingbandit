@@ -1,6 +1,6 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import math
+
+import numpy as np
 from scipy import stats
 
 # %%
@@ -61,9 +61,7 @@ def pick_arm(
 
     if strategy == "fracKUBE":
         total_counts = np.sum(counts)
-        q_values_ucb = q_values + np.sqrt(
-            2 * math.log(total_counts + 1.0) / (counts + 0.001)
-        )
+        q_values_ucb = q_values + np.sqrt(2 * math.log(total_counts + 1.0) / (counts + 0.001))
         q_values_to_cost_ratio = q_values_ucb / costs
         best_arms_value = np.max(q_values_to_cost_ratio)
         best_arms = np.argwhere(q_values_to_cost_ratio == best_arms_value).flatten()
@@ -90,12 +88,12 @@ def pick_arm(
         draws = np.zeros(len(counts))
         for i in range(len(counts)):
             draws[i] = np.random.beta(success[i] + 1, failure[i] + 1)
-        I = np.argmax(draws)
+        best_idx = np.argmax(draws)
         if np.random.binomial(1, psi) == 1:
-            arm_choice = I
+            arm_choice = best_idx
         else:
             J = None
-            while J != I:
+            while J != best_idx:
                 for i in range(len(counts)):
                     draws[i] = np.random.beta(success[i] + 1, failure[i] + 1)
                 J = np.argmax(draws)
@@ -132,7 +130,7 @@ def sim_runner(
     arm_means,
     costs,
     pay_after=False,
-    bandits=["greedy", "random", "egreedy", "efirst", "ucb", "thompson", "fracKUBE"],
+    bandits=("greedy", "random", "egreedy", "efirst", "ucb", "thompson", "fracKUBE"),
     ax=None,
     number_of_arms=10,
     number_of_pulls=30_000,
@@ -161,15 +159,13 @@ def sim_runner(
                     share_elapsed=j / number_of_pulls,
                 )
                 reward = np.random.binomial(1, arm_means[a])
-                rewards[j] = (
-                    reward  # append to sequence of rewards for eventual plotting
-                )
+                rewards[j] = reward  # append to sequence of rewards for eventual plotting
                 counts[a] += 1.0
                 q_values[a] += (reward - q_values[a]) / counts[a]
                 success[a] += reward
                 failure[a] += 1 - reward
                 j += 1
-                if pay_after == False:
+                if not pay_after:
                     B -= costs[a]
                 else:
                     if reward == 1:
@@ -187,9 +183,7 @@ def sim_runner(
                     share_elapsed=j / number_of_pulls,
                 )
                 reward = np.random.binomial(1, arm_means[a])
-                rewards[j] = (
-                    reward  # append to sequence of rewards for eventual plotting
-                )
+                rewards[j] = reward  # append to sequence of rewards for eventual plotting
                 counts[a] += 1.0
                 q_values[a] += (reward - q_values[a]) / counts[a]
                 success[a] += reward
@@ -232,7 +226,6 @@ def arm_sequence(
     number_of_pulls=10_000,
     number_of_arms=10,
 ):
-    run_lengths = []
     # initialise large arrays for best arm, reward, and pull sequences
     q_values = np.zeros(number_of_arms)
     counts = np.zeros(number_of_arms)
@@ -260,7 +253,7 @@ def arm_sequence(
             q_values[a] += (reward - q_values[a]) / counts[a]
             success[a] += reward
             failure[a] += 1 - reward
-            if pay_after == False:
+            if not pay_after:
                 B -= costs[a]
             else:
                 if reward == 1:
@@ -299,9 +292,7 @@ def arm_sequence(
 ##         #######  ######## ########  ######  ########  ##### ##
 
 
-def pull_sequence(
-    pull_mat, title, ax, means, costs=None, costly=False, xticks=True, logx=True
-):
+def pull_sequence(pull_mat, title, ax, means, costs=None, costly=False, xticks=True, logx=True):
     # store index of best arm
     if costly:
         best_arm = np.argmax(means / costs)
@@ -320,10 +311,10 @@ def pull_sequence(
             ax.plot(xs, ys, label=lab, alpha=0.8, linewidth=2.5)
         else:
             ax.plot(xs, ys, label=lab, alpha=0.8, linewidth=1.5)
-    if logx == True:
+    if logx:
         ax.set_xscale("log")
     ax.set_title(title)
-    if xticks == False:
+    if not xticks:
         ax.axes.get_xaxis().set_ticklabels([])
 
 
@@ -348,7 +339,6 @@ def best_arm(arm_means, bandit, M=1_000, conf_threshold=0.8, beta=0.6):
     j = 0
     # while loop for termination when confidence level reached
     while uncertain:
-        post_draws = np.zeros(number_of_arms)
         b = []
         # init random variables
         for i in range(number_of_arms):
@@ -390,7 +380,7 @@ def best_arm(arm_means, bandit, M=1_000, conf_threshold=0.8, beta=0.6):
         j += 1
         # abort search after 5k runs
         if j >= 2_000:
-            print(f"aborted")
+            print("aborted")
             uncertain = False
     return alpha_post_mat
 
@@ -405,9 +395,7 @@ def best_arm(arm_means, bandit, M=1_000, conf_threshold=0.8, beta=0.6):
 ########  ##     ## ##    ## ########  ####    ##     ######   #######   ######     ##
 
 
-def rep_bandit_cost(
-    bandit, arm_means, pay_levels, B, target_shares, gamma=2, payafter=False
-):
+def rep_bandit_cost(bandit, arm_means, pay_levels, B, target_shares, gamma=2, payafter=False):
     # if bandit not in ['thompsonBC', 'random', 'egreedy', 'thompson']:
     #     raise ValueError(f"{bandit} Bandit not supported")
     number_of_arms = arm_means.shape[0]
@@ -426,9 +414,7 @@ def rep_bandit_cost(
         i = 0
         while b >= 0:
             # pick new arm
-            a = pick_arm(
-                q_values, counts, bandit, success, failure, costs, share_elapsed=1
-            )
+            a = pick_arm(q_values, counts, bandit, success, failure, costs, share_elapsed=1)
             # return reward
             reward = np.random.binomial(1, arm_means[a])
             q_values[a] += (reward - q_values[a]) / counts[a]
@@ -438,9 +424,7 @@ def rep_bandit_cost(
             counts[a] += 1.0
             # group shares
             id = len(pay_levels)
-            share_a = np.sum(success[0:id]) / np.sum(
-                success
-            )  # current share of group a in sample
+            share_a = np.sum(success[0:id]) / np.sum(success)  # current share of group a in sample
             if np.isnan(share_a):  # beginning - set to 0
                 shares = np.vstack([shares, np.array([0, 0])])
                 costmat = np.vstack([costmat, init_costs])
@@ -467,9 +451,7 @@ def rep_bandit_cost(
 
 
 # %%
-def rep_bandit_rake(
-    bandit, arm_means, pay_levels, B, target_shares, payafter=False, alpha=0.5
-):
+def rep_bandit_rake(bandit, arm_means, pay_levels, B, target_shares, payafter=False, alpha=0.5):
     number_of_arms = arm_means.shape[0]
     # init costs and shares
     q_values, counts, success, failure = [np.zeros(number_of_arms) for _ in range(4)]
@@ -485,9 +467,7 @@ def rep_bandit_rake(
     while b >= 0:
         if bandit == "KUBE":
             total_counts = np.sum(counts)
-            q_values_ucb = q_values + np.sqrt(
-                2 * math.log(total_counts + 1.0) / (counts + 0.001)
-            )
+            q_values_ucb = q_values + np.sqrt(2 * math.log(total_counts + 1.0) / (counts + 0.001))
             rats = q_values_ucb / costs
         elif bandit == "ThompsonBC":
             # thompson part
@@ -499,16 +479,12 @@ def rep_bandit_rake(
             rats = draws / scaled_costs
         # weights
         id = len(pay_levels)
-        share_a = np.sum(success[0:id]) / np.sum(
-            success
-        )  # current share of group a in sample
+        share_a = np.sum(success[0:id]) / np.sum(success)  # current share of group a in sample
         if np.isnan(share_a):  # beginning - set to 0
             shares = np.vstack([shares, np.array([0, 0])])
             a = np.argmax(rats)
         else:  # once shares exist, start scaling
             shares = np.vstack([shares, np.array([share_a, 1 - share_a])])
-            # revise costs for group A
-            gap_a = target_shares[0] / share_a - 1  # extent of overshooting
             # choose arm
             wted_loss = alpha * rats - (1 - alpha) * share_a * np.log(share_a)
             a = np.argmax(wted_loss)

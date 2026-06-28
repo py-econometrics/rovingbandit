@@ -1,7 +1,7 @@
 """Greedy policy - always exploit best arm."""
 
-from typing import Optional
 import numpy as np
+
 from rovingbandit.core.policy import Policy
 
 
@@ -13,7 +13,7 @@ class GreedyPolicy(Policy):
     Ties broken randomly.
     """
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm with highest estimated value.
 
@@ -29,7 +29,7 @@ class GreedyPolicy(Policy):
 
         return self._select_greedy_arm()
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update counts and value estimates.
 

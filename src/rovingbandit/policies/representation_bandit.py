@@ -1,7 +1,9 @@
 """Representation Bandit policy."""
 
-from typing import Optional, Dict, Any, List
+from typing import Any
+
 import numpy as np
+
 from rovingbandit.policies.budgeted_thompson import BudgetedThompsonSampling
 
 
@@ -31,12 +33,12 @@ class RepresentationBandit(BudgetedThompsonSampling):
         arm_groups: np.ndarray,
         target_shares: np.ndarray,
         total_budget: float,
-        costs: Optional[np.ndarray] = None,
+        costs: np.ndarray | None = None,
         gamma: float = 2.0,
         prior_alpha: float = 1.0,
         prior_beta: float = 1.0,
-        seed: Optional[int] = None,
-    ):
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize Representation Bandit.
 
@@ -53,24 +55,24 @@ class RepresentationBandit(BudgetedThompsonSampling):
             seed: Random seed
         """
         super().__init__(n_arms, costs, prior_alpha, prior_beta, seed)
-        
+
         self.arm_groups = np.array(arm_groups, dtype=int)
         self.target_shares = np.array(target_shares, dtype=float)
         self.total_budget = float(total_budget)
         self.gamma = float(gamma)
-        
+
         self.n_groups = len(target_shares)
         self.total_cost_incurred = 0.0
-        
+
         # Validation
         if len(self.arm_groups) != n_arms:
             raise ValueError(f"arm_groups length ({len(self.arm_groups)}) != n_arms ({n_arms})")
         if not np.isclose(np.sum(self.target_shares), 1.0):
             raise ValueError(f"target_shares must sum to 1.0, got {np.sum(self.target_shares)}")
         if np.max(self.arm_groups) >= self.n_groups:
-             raise ValueError("arm_groups indices exceed number of target_shares")
+            raise ValueError("arm_groups indices exceed number of target_shares")
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm using adjusted costs.
 
@@ -97,11 +99,11 @@ class RepresentationBandit(BudgetedThompsonSampling):
         # Calculate adjusted costs
         # c_adjusted = c_base * (1 + fraction * (share - target)) ** gamma
         adjusted_costs = self.costs.copy()
-        
+
         for group in range(self.n_groups):
             psi = current_shares[group] - self.target_shares[group]
             multiplier = (1.0 + fraction_spent * psi) ** self.gamma
-            
+
             # Apply to all arms in this group
             # Identify arms belonging to this group
             group_arms = np.where(self.arm_groups == group)[0]
@@ -110,14 +112,14 @@ class RepresentationBandit(BudgetedThompsonSampling):
         # Use Thompson Sampling logic with adjusted costs
         # 1. Sample posteriors
         samples = self._sample_posteriors()
-        
+
         # 2. Compute ratio with adjusted costs
         safe_costs = np.maximum(adjusted_costs, 1e-10)
         ratios = samples / safe_costs
-        
+
         return int(np.argmax(ratios))
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update state and total cost.
 
@@ -129,19 +131,21 @@ class RepresentationBandit(BudgetedThompsonSampling):
         super().update(arm, reward, cost)
         self.total_cost_incurred += cost
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get state including accumulated cost."""
         state = super().get_state()
-        state.update({
-            "total_cost_incurred": self.total_cost_incurred,
-            "arm_groups": self.arm_groups.copy(),
-            "target_shares": self.target_shares.copy(),
-            "total_budget": self.total_budget,
-            "gamma": self.gamma
-        })
+        state.update(
+            {
+                "total_cost_incurred": self.total_cost_incurred,
+                "arm_groups": self.arm_groups.copy(),
+                "target_shares": self.target_shares.copy(),
+                "total_budget": self.total_budget,
+                "gamma": self.gamma,
+            }
+        )
         return state
 
-    def set_state(self, state: Dict[str, Any]):
+    def set_state(self, state: dict[str, Any]) -> None:
         """Restore state."""
         super().set_state(state)
         self.total_cost_incurred = state["total_cost_incurred"]

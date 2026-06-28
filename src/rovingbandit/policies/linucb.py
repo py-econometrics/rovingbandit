@@ -1,7 +1,9 @@
 """LinUCB policy for linear contextual bandits."""
 
-from typing import Optional, Dict, Any
+from typing import Any
+
 import numpy as np
+
 from rovingbandit.core.policy import Policy
 
 
@@ -17,9 +19,9 @@ class LinUCB(Policy):
         self,
         n_arms: int,
         alpha: float = 1.0,
-        dim: Optional[int] = None,
-        seed: Optional[int] = None,
-    ):
+        dim: int | None = None,
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize LinUCB policy.
 
@@ -32,19 +34,19 @@ class LinUCB(Policy):
         super().__init__(n_arms, seed)
         self.alpha = alpha
         self.dim = dim
-        self._A: Optional[np.ndarray] = None  # shape (n_arms, d, d)
-        self._A_inv: Optional[np.ndarray] = None
-        self._b: Optional[np.ndarray] = None  # shape (n_arms, d)
-        self._last_context: Optional[np.ndarray] = None
+        self._A: np.ndarray | None = None  # shape (n_arms, d, d)
+        self._A_inv: np.ndarray | None = None
+        self._b: np.ndarray | None = None  # shape (n_arms, d)
+        self._last_context: np.ndarray | None = None
 
-    def _ensure_matrices(self, dim: int):
+    def _ensure_matrices(self, dim: int) -> None:
         """Initialize parameter matrices if not yet created."""
         if self._A is None or self._A.shape[1] != dim:
             self._A = np.array([np.eye(dim) for _ in range(self.n_arms)])
             self._A_inv = np.array([np.eye(dim) for _ in range(self.n_arms)])
             self._b = np.zeros((self.n_arms, dim))
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm using LinUCB.
 
@@ -62,6 +64,7 @@ class LinUCB(Policy):
 
         dim = context.shape[1]
         self._ensure_matrices(dim)
+        assert self._A is not None and self._A_inv is not None and self._b is not None
 
         # Pull any unobserved arm at least once
         if np.any(self.counts == 0):
@@ -86,7 +89,7 @@ class LinUCB(Policy):
         self._last_context = context[chosen_arm]
         return chosen_arm
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update ridge estimates with observed reward.
 
@@ -97,6 +100,7 @@ class LinUCB(Policy):
         """
         if self._last_context is None:
             raise ValueError("Context required for LinUCB update but not found.")
+        assert self._A is not None and self._A_inv is not None and self._b is not None
 
         x = self._last_context
         x = x.reshape(-1, 1)
@@ -115,7 +119,7 @@ class LinUCB(Policy):
         # Clear stored context
         self._last_context = None
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Serialize policy state."""
         state = super().get_state()
         state.update(
@@ -129,7 +133,7 @@ class LinUCB(Policy):
         )
         return state
 
-    def set_state(self, state: Dict[str, Any]):
+    def set_state(self, state: dict[str, Any]) -> None:
         """Restore policy state."""
         super().set_state(state)
         self.alpha = state["alpha"]
@@ -139,7 +143,7 @@ class LinUCB(Policy):
         self._b = None if state.get("b") is None else state["b"].copy()
         self._last_context = None
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset policy to initial state."""
         super().reset()
         self._A = None

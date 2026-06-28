@@ -1,7 +1,7 @@
 """Upper Confidence Bound (UCB) policies."""
 
-from typing import Optional
 import numpy as np
+
 from rovingbandit.core.policy import Policy
 
 
@@ -22,8 +22,8 @@ class UCB1(Policy):
         self,
         n_arms: int,
         exploration_factor: float = 2.0,
-        seed: Optional[int] = None,
-    ):
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize UCB1 policy.
 
@@ -35,7 +35,7 @@ class UCB1(Policy):
         super().__init__(n_arms, seed)
         self.exploration_factor = exploration_factor
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm using UCB1 strategy.
 
@@ -59,7 +59,7 @@ class UCB1(Policy):
         best_arms = np.where(ucb_values == max_ucb)[0]
         return int(self.rng.choice(best_arms))
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update counts and value estimates.
 

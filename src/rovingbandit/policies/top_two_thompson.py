@@ -1,7 +1,9 @@
 """Top-Two Thompson Sampling policy."""
 
-from typing import Optional, Dict, Any
+from typing import Any
+
 import numpy as np
+
 from rovingbandit.policies.thompson_sampling import ThompsonSampling
 
 
@@ -28,8 +30,8 @@ class TopTwoThompson(ThompsonSampling):
         prior_alpha: float = 1.0,
         prior_beta: float = 1.0,
         max_resamples: int = 100,
-        seed: Optional[int] = None,
-    ):
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize Top-Two Thompson Sampling.
 
@@ -47,7 +49,7 @@ class TopTwoThompson(ThompsonSampling):
         self.psi = psi
         self.max_resamples = max_resamples
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm using Top-Two Thompson Sampling.
 
@@ -75,7 +77,6 @@ class TopTwoThompson(ThompsonSampling):
         # Fallback if rejection sampling fails (posterior too concentrated)
         # Return second best from the last sample
         # Note: samples_challenger is from the last iteration
-        sorted_indices = np.argsort(samples_challenger)
         # Best is at [-1], second best is at [-2]
         # But we need to make sure [-1] is indeed the leader or we just pick the best distinct from leader
         # If posterior is concentrated, samples_challenger argmax is likely leader.
@@ -86,7 +87,7 @@ class TopTwoThompson(ThompsonSampling):
         fallback_challenger = int(np.argmax(samples_challenger))
         return fallback_challenger
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get state including TTTS parameters."""
         state = super().get_state()
         state.update(
@@ -97,7 +98,7 @@ class TopTwoThompson(ThompsonSampling):
         )
         return state
 
-    def set_state(self, state: Dict[str, Any]):
+    def set_state(self, state: dict[str, Any]) -> None:
         """Restore state including TTTS parameters."""
         super().set_state(state)
         self.psi = state["psi"]

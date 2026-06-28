@@ -1,11 +1,13 @@
 """Best-arm identification objective."""
 
-from typing import Dict, Any, Optional
+from typing import Any
+
 import numpy as np
 from scipy import stats
+
 from rovingbandit.core.objective import Objective
-from rovingbandit.core.result import History
 from rovingbandit.core.policy import Policy
+from rovingbandit.core.result import History
 
 
 class BestArmIdentification(Objective):
@@ -21,8 +23,8 @@ class BestArmIdentification(Objective):
         self,
         confidence_threshold: float = 0.95,
         n_mc_samples: int = 1000,
-        seed: Optional[int] = None,
-    ):
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize best-arm identification objective.
 
@@ -38,9 +40,9 @@ class BestArmIdentification(Objective):
     def compute_metric(
         self,
         history: History,
-        policy: Policy = None,
-        true_best_arm: int = None,
-        **kwargs,
+        policy: Policy | None = None,
+        true_best_arm: int | None = None,
+        **kwargs: Any,
     ) -> float:
         """
         Compute probability that identified arm is the best.
@@ -60,9 +62,7 @@ class BestArmIdentification(Objective):
         confidence = self._compute_best_arm_probability(policy)
         return float(confidence)
 
-    def stopping_criterion(
-        self, policy: Policy, history: History, **kwargs
-    ) -> bool:
+    def stopping_criterion(self, policy: Policy, history: History, **kwargs: Any) -> bool:
         """
         Stop when confidence in best arm exceeds threshold.
 
@@ -77,9 +77,7 @@ class BestArmIdentification(Objective):
         confidence = self._compute_best_arm_probability(policy)
         return confidence >= self.confidence_threshold
 
-    def get_metadata(
-        self, policy: Policy, history: History, **kwargs
-    ) -> Dict[str, Any]:
+    def get_metadata(self, policy: Policy, history: History, **kwargs: Any) -> dict[str, Any]:
         """Return confidence and best arm."""
         confidence = self._compute_best_arm_probability(policy)
         best_arm = int(np.argmax(policy.values))
@@ -107,9 +105,11 @@ class BestArmIdentification(Objective):
         values = policy.values
 
         # Check if this is a Thompson-style policy with success/failure counts
-        if hasattr(policy, "successes") and hasattr(policy, "failures"):
-            alpha = policy.successes + 1
-            beta = policy.failures + 1
+        successes = getattr(policy, "successes", None)
+        failures = getattr(policy, "failures", None)
+        if successes is not None and failures is not None:
+            alpha = successes + 1
+            beta = failures + 1
         else:
             # Approximate with Beta from empirical mean
             # Alpha = successes + 1, Beta = failures + 1

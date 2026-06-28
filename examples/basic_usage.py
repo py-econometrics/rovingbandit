@@ -6,21 +6,21 @@ and variance minimization objectives.
 """
 
 # %%
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from rovingbandit import (
-    BanditEnvironment,
     UCB1,
-    ThompsonSampling,
-    EpsilonGreedy,
-    RandomPolicy,
-    EpsilonNeymanAllocation,
-    RegretMinimization,
-    BestArmIdentification,
-    VarianceMinimization,
-    OnlineRunner,
+    BanditEnvironment,
     BatchedRunner,
+    BestArmIdentification,
+    EpsilonGreedy,
+    EpsilonNeymanAllocation,
+    OnlineRunner,
+    RandomPolicy,
+    RegretMinimization,
+    ThompsonSampling,
+    VarianceMinimization,
 )
 
 # %%
@@ -105,7 +105,9 @@ def example_2_best_arm_identification():
     plt.savefig("example_2_best_arm_identification.png", dpi=150)
     print("Plot saved to: example_2_best_arm_identification.png")
 
+
 # %%
+
 
 def example_3_budget_constraint():
     """Example 3: Budget-constrained bandits."""
@@ -125,7 +127,7 @@ def example_3_budget_constraint():
 
     result = runner.run_with_budget(policy, env, budget=100.0)
 
-    print(f"Budget: 100.0")
+    print("Budget: 100.0")
     print(f"Total cost: {result.total_cost:.2f}")
     print(f"Pulls: {result.n_steps}")
     print(f"Total reward: {result.total_reward:.1f}")
@@ -140,7 +142,9 @@ def example_3_budget_constraint():
             f"  Arm {i}: {int(count):3d} pulls | True mean: {mean:.2f} | Cost: {cost:.2f} | Estimated: {value:.3f}"
         )
 
+
 # %%
+
 
 def example_4_batched_mode():
     """Example 4: Batched (parallel) mode."""
@@ -159,8 +163,8 @@ def example_4_batched_mode():
 
     result = runner.run(policy, env, batch_size=10, n_batches=50)
 
-    print(f"Batch size: 10")
-    print(f"Number of batches: 50")
+    print("Batch size: 10")
+    print("Number of batches: 50")
     print(f"Total pulls: {result.n_steps}")
     print(f"Total reward: {result.total_reward:.1f}")
     print(f"Average reward: {result.average_reward:.3f}")
@@ -316,6 +320,7 @@ def example_7_epsilon_neyman_multiarm():
         f"Variance score reduction vs random: {(1 - neyman_score / random_score) * 100:.1f}% "
         f"(epsilon={exploration_fraction})"
     )
+
 
 # %%
 if __name__ == "__main__":
