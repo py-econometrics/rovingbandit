@@ -74,6 +74,18 @@ addopts = [
     "--cov=rovingbandit",
     "--cov-report=term-missing",
     "--cov-report=html",
+    "--color=yes",
+]
+
+[tool.coverage.run]
+source = ["rovingbandit"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
 ]
 
 [tool.ruff]
