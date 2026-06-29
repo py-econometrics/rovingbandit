@@ -188,13 +188,11 @@ src/rovingbandit/
 │   ├── policy.py              # Policy base class
 │   ├── objective.py           # Objective base class
 │   └── result.py              # Result & History
-├── policies/                  # Algorithm implementations
-│   ├── random_policy.py
-│   ├── greedy.py
-│   ├── epsilon_greedy.py
-│   ├── explore_first.py
-│   ├── ucb.py
-│   └── thompson_sampling.py
+├── policies/                  # Algorithm implementations, grouped by objective
+│   ├── regret_minimization/   # random, greedy, epsilon_greedy, explore_first,
+│   │                          #   ucb, thompson_sampling, budgeted_*, linucb
+│   ├── best_arm_identification/  # top_two_thompson, lucb
+│   └── variance_minimization/    # epsilon_neyman, kasy_sautmann, representation_bandit
 ├── objectives/                # Goal definitions
 │   ├── regret_minimization.py
 │   ├── best_arm_identification.py

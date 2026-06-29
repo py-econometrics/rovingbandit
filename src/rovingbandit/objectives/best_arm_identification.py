@@ -5,6 +5,7 @@ from typing import Any
 import numpy as np
 from scipy import stats
 
+from rovingbandit.core.exceptions import MissingConfigurationError
 from rovingbandit.core.objective import Objective
 from rovingbandit.core.policy import Policy
 from rovingbandit.core.result import History
@@ -57,7 +58,7 @@ class BestArmIdentification(Objective):
             Confidence in best arm (probability it is best)
         """
         if policy is None:
-            raise ValueError("policy required for best-arm identification")
+            raise MissingConfigurationError("policy required for best-arm identification")
 
         confidence = self._compute_best_arm_probability(policy)
         return float(confidence)

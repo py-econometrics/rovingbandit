@@ -4,6 +4,11 @@ from typing import Any
 
 import numpy as np
 
+from rovingbandit.core.exceptions import (
+    InvalidConfigurationError,
+    MissingConfigurationError,
+    UninitializedStateError,
+)
 from rovingbandit.core.policy import Policy
 
 
@@ -57,14 +62,17 @@ class LinUCB(Policy):
             Selected arm index
         """
         if context is None:
-            raise ValueError("LinUCB requires per-arm context features.")
+            raise MissingConfigurationError("LinUCB requires per-arm context features.")
 
         if context.shape[0] != self.n_arms:
-            raise ValueError("Context first dimension must match number of arms.")
+            raise InvalidConfigurationError(
+                f"context first dimension is {context.shape[0]}, expected n_arms={self.n_arms}"
+            )
 
         dim = context.shape[1]
         self._ensure_matrices(dim)
-        assert self._A is not None and self._A_inv is not None and self._b is not None
+        if self._A is None or self._A_inv is None or self._b is None:
+            raise UninitializedStateError("LinUCB matrices were not initialized")
 
         # Pull any unobserved arm at least once
         if np.any(self.counts == 0):
@@ -99,8 +107,9 @@ class LinUCB(Policy):
             cost: Cost incurred (ignored)
         """
         if self._last_context is None:
-            raise ValueError("Context required for LinUCB update but not found.")
-        assert self._A is not None and self._A_inv is not None and self._b is not None
+            raise MissingConfigurationError("context required for LinUCB update but not found")
+        if self._A is None or self._A_inv is None or self._b is None:
+            raise UninitializedStateError("LinUCB matrices were not initialized")
 
         x = self._last_context
         x = x.reshape(-1, 1)

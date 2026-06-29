@@ -4,6 +4,12 @@ from collections.abc import Callable
 
 import numpy as np
 
+from rovingbandit.core.exceptions import (
+    InvalidArmError,
+    InvalidConfigurationError,
+    MissingConfigurationError,
+)
+
 
 class BanditEnvironment:
     """
@@ -49,18 +55,30 @@ class BanditEnvironment:
 
         # Validate inputs
         if arm_means is not None:
-            assert len(arm_means) == n_arms, "arm_means length must match n_arms"
-            assert np.all((arm_means >= 0) & (arm_means <= 1)), "arm_means must be in [0,1]"
+            if len(arm_means) != n_arms:
+                raise InvalidConfigurationError(
+                    f"arm_means has length {len(arm_means)}, expected n_arms={n_arms}"
+                )
+            if not np.all((arm_means >= 0) & (arm_means <= 1)):
+                raise InvalidConfigurationError("arm_means must lie in [0, 1]")
 
         if costs is not None:
-            assert len(costs) == n_arms, "costs length must match n_arms"
-            assert np.all(costs > 0), "costs must be positive"
+            if len(costs) != n_arms:
+                raise InvalidConfigurationError(
+                    f"costs has length {len(costs)}, expected n_arms={n_arms}"
+                )
+            if not np.all(costs > 0):
+                raise InvalidConfigurationError("costs must be strictly positive")
 
-        if arm_groups is not None:
-            assert len(arm_groups) == n_arms, "arm_groups length must match n_arms"
+        if arm_groups is not None and len(arm_groups) != n_arms:
+            raise InvalidConfigurationError(
+                f"arm_groups has length {len(arm_groups)}, expected n_arms={n_arms}"
+            )
 
-        if contexts is not None:
-            assert contexts.shape[0] == n_arms, "contexts first dimension must match n_arms"
+        if contexts is not None and contexts.shape[0] != n_arms:
+            raise InvalidConfigurationError(
+                f"contexts first dimension is {contexts.shape[0]}, expected n_arms={n_arms}"
+            )
 
     def pull(self, arm: int) -> tuple[float, float]:
         """
@@ -72,7 +90,8 @@ class BanditEnvironment:
         Returns:
             Tuple of (reward, cost)
         """
-        assert 0 <= arm < self.n_arms, f"Invalid arm index: {arm}"
+        if not 0 <= arm < self.n_arms:
+            raise InvalidArmError(f"arm {arm} out of range [0, {self.n_arms})")
 
         if self.reward_fn is not None:
             reward = self.reward_fn(arm, self.rng)
@@ -80,7 +99,7 @@ class BanditEnvironment:
             # Bernoulli reward
             reward = float(self.rng.binomial(1, self.arm_means[arm]))
         else:
-            raise ValueError("Either arm_means or reward_fn must be provided")
+            raise MissingConfigurationError("either arm_means or reward_fn must be provided")
 
         cost = float(self.costs[arm])
         return reward, cost
@@ -96,7 +115,7 @@ class BanditEnvironment:
             Index of optimal arm
         """
         if self.arm_means is None:
-            raise ValueError("Cannot determine optimal arm without arm_means")
+            raise MissingConfigurationError("cannot determine optimal arm without arm_means")
 
         if objective == "reward":
             return int(np.argmax(self.arm_means))
@@ -105,12 +124,12 @@ class BanditEnvironment:
         elif objective == "reward_per_cost":
             return int(np.argmax(self.arm_means / self.costs))
         else:
-            raise ValueError(f"Unknown objective: {objective}")
+            raise InvalidConfigurationError(f"unknown objective: {objective!r}")
 
     def get_optimal_reward(self, objective: str = "reward") -> float:
         """Get the expected reward from optimal arm."""
         if self.arm_means is None:
-            raise ValueError("Cannot determine optimal reward without arm_means")
+            raise MissingConfigurationError("cannot determine optimal reward without arm_means")
 
         optimal_arm = self.get_optimal_arm(objective)
         return float(self.arm_means[optimal_arm])

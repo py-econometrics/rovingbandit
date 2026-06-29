@@ -4,7 +4,8 @@ from typing import Any
 
 import numpy as np
 
-from rovingbandit.policies.budgeted_thompson import BudgetedThompsonSampling
+from rovingbandit.core.exceptions import InvalidConfigurationError
+from rovingbandit.policies.regret_minimization.budgeted_thompson import BudgetedThompsonSampling
 
 
 class RepresentationBandit(BudgetedThompsonSampling):
@@ -66,11 +67,15 @@ class RepresentationBandit(BudgetedThompsonSampling):
 
         # Validation
         if len(self.arm_groups) != n_arms:
-            raise ValueError(f"arm_groups length ({len(self.arm_groups)}) != n_arms ({n_arms})")
+            raise InvalidConfigurationError(
+                f"arm_groups length ({len(self.arm_groups)}) != n_arms ({n_arms})"
+            )
         if not np.isclose(np.sum(self.target_shares), 1.0):
-            raise ValueError(f"target_shares must sum to 1.0, got {np.sum(self.target_shares)}")
+            raise InvalidConfigurationError(
+                f"target_shares must sum to 1.0, got {np.sum(self.target_shares)}"
+            )
         if np.max(self.arm_groups) >= self.n_groups:
-            raise ValueError("arm_groups indices exceed number of target_shares")
+            raise InvalidConfigurationError("arm_groups indices exceed number of target_shares")
 
     def select_arm(self, context: np.ndarray | None = None) -> int:
         """

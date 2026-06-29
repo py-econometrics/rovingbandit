@@ -4,6 +4,7 @@ from typing import Any
 
 import numpy as np
 
+from rovingbandit.core.exceptions import MissingConfigurationError
 from rovingbandit.core.objective import Objective
 from rovingbandit.core.policy import Policy
 from rovingbandit.core.result import History
@@ -43,7 +44,7 @@ class RegretMinimization(Objective):
         """
         opt_reward = optimal_reward or self.optimal_reward
         if opt_reward is None:
-            raise ValueError("optimal_reward must be provided")
+            raise MissingConfigurationError("optimal_reward must be provided")
 
         T = len(history)
         optimal_rewards = np.full(T, opt_reward)

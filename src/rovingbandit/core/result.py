@@ -6,6 +6,8 @@ from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 
+from rovingbandit.core.exceptions import InvalidConfigurationError
+
 
 @dataclass
 class History:
@@ -182,7 +184,9 @@ class Result:
                 ax.set_ylabel("Cumulative Regret")
                 ax.set_title(f"Cumulative Regret {annotation}")
             else:
-                raise ValueError("Cumulative regret not available")
+                raise InvalidConfigurationError(
+                    "cumulative regret unavailable: no 'optimal_reward' in metadata"
+                )
         elif metric == "arm_pulls":
             # Plot cumulative pulls per arm
             n_arms = self.policy_state["n_arms"]
@@ -198,7 +202,7 @@ class Result:
             ax.set_title(f"Arm Pulls {annotation}")
             ax.legend()
         else:
-            raise ValueError(f"Unknown metric: {metric}")
+            raise InvalidConfigurationError(f"unknown metric: {metric!r}")
 
         ax.set_xlabel("Steps")
         ax.grid(alpha=0.3)

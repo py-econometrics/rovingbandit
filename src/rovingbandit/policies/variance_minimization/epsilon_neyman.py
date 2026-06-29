@@ -4,6 +4,10 @@ from typing import Any
 
 import numpy as np
 
+from rovingbandit.core.exceptions import (
+    InvalidConfigurationError,
+    MissingConfigurationError,
+)
 from rovingbandit.core.policy import Policy
 
 
@@ -43,7 +47,7 @@ class EpsilonNeymanAllocation(Policy):
         """
         super().__init__(n_arms, seed)
         if exploration_fraction < 0 or exploration_fraction > 1:
-            raise ValueError("exploration_fraction must be in [0, 1]")
+            raise InvalidConfigurationError("exploration_fraction must be in [0, 1]")
         self.exploration_fraction = exploration_fraction
         self.horizon = horizon
         self.min_variance = min_variance
@@ -83,7 +87,9 @@ class EpsilonNeymanAllocation(Policy):
             Selected arm index
         """
         if self.horizon is None:
-            raise ValueError("EpsilonNeymanAllocation requires horizon to be set before running.")
+            raise MissingConfigurationError(
+                "EpsilonNeymanAllocation requires horizon to be set before running."
+            )
 
         exploration_steps = int(self.horizon * self.exploration_fraction)
         if self.total_pulls < exploration_steps:

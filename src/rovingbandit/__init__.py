@@ -17,9 +17,14 @@ from rovingbandit.banditry import (
 from rovingbandit.core import (
     BanditEnvironment,
     History,
+    InvalidArmError,
+    InvalidConfigurationError,
+    MissingConfigurationError,
     Objective,
     Policy,
     Result,
+    RovingBanditError,
+    UninitializedStateError,
 )
 from rovingbandit.objectives import (
     BestArmIdentification,
@@ -56,6 +61,12 @@ __all__ = [
     "Objective",
     "Result",
     "History",
+    # Exceptions
+    "RovingBanditError",
+    "InvalidArmError",
+    "InvalidConfigurationError",
+    "MissingConfigurationError",
+    "UninitializedStateError",
     # Policies
     "RandomPolicy",
     "GreedyPolicy",
