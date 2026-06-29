@@ -1,6 +1,7 @@
 """Bandit environment implementation."""
 
-from typing import Optional, Tuple, Callable
+from collections.abc import Callable
+
 import numpy as np
 
 
@@ -19,13 +20,13 @@ class BanditEnvironment:
     def __init__(
         self,
         n_arms: int,
-        arm_means: Optional[np.ndarray] = None,
-        costs: Optional[np.ndarray] = None,
-        arm_groups: Optional[np.ndarray] = None,
-        reward_fn: Optional[Callable[[int, np.random.Generator], float]] = None,
-        contexts: Optional[np.ndarray] = None,
-        seed: Optional[int] = None,
-    ):
+        arm_means: np.ndarray | None = None,
+        costs: np.ndarray | None = None,
+        arm_groups: np.ndarray | None = None,
+        reward_fn: Callable[[int, np.random.Generator], float] | None = None,
+        contexts: np.ndarray | None = None,
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize bandit environment.
 
@@ -61,7 +62,7 @@ class BanditEnvironment:
         if contexts is not None:
             assert contexts.shape[0] == n_arms, "contexts first dimension must match n_arms"
 
-    def pull(self, arm: int) -> Tuple[float, float]:
+    def pull(self, arm: int) -> tuple[float, float]:
         """
         Pull an arm and observe reward.
 
@@ -114,10 +115,10 @@ class BanditEnvironment:
         optimal_arm = self.get_optimal_arm(objective)
         return float(self.arm_means[optimal_arm])
 
-    def reset_rng(self, seed: Optional[int] = None):
+    def reset_rng(self, seed: int | None = None) -> None:
         """Reset the random number generator."""
         self.rng = np.random.default_rng(seed)
 
-    def get_contexts(self) -> Optional[np.ndarray]:
+    def get_contexts(self) -> np.ndarray | None:
         """Return contextual feature matrix if available."""
         return None if self.contexts is None else self.contexts.copy()

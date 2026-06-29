@@ -1,7 +1,7 @@
 """Lower-Upper Confidence Bound (LUCB) policy for best-arm identification."""
 
-from typing import Optional
 import numpy as np
+
 from rovingbandit.core.policy import Policy
 
 
@@ -15,7 +15,9 @@ class LUCB(Policy):
     suboptimal arms while tightening confidence around the leader.
     """
 
-    def __init__(self, n_arms: int, exploration_factor: float = 2.0, seed: Optional[int] = None):
+    def __init__(
+        self, n_arms: int, exploration_factor: float = 2.0, seed: int | None = None
+    ) -> None:
         """
         Initialize LUCB policy.
 
@@ -33,7 +35,7 @@ class LUCB(Policy):
         t = max(self.total_pulls, 1)
         return np.sqrt(self.exploration_factor * np.log(t) / pulls)
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm according to LUCB rule.
 
@@ -66,7 +68,7 @@ class LUCB(Policy):
             return leader
         return challenger
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update counts and value estimates.
 

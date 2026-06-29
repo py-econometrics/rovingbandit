@@ -1,9 +1,10 @@
 """Result and history tracking for bandit simulations."""
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
-import numpy as np
+from typing import Any
+
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 @dataclass
@@ -18,18 +19,18 @@ class History:
         contexts: Sequence of contexts (if contextual)
     """
 
-    arms: List[int] = field(default_factory=list)
-    rewards: List[float] = field(default_factory=list)
-    costs: List[float] = field(default_factory=list)
-    contexts: List[Optional[np.ndarray]] = field(default_factory=list)
+    arms: list[int] = field(default_factory=list)
+    rewards: list[float] = field(default_factory=list)
+    costs: list[float] = field(default_factory=list)
+    contexts: list[np.ndarray | None] = field(default_factory=list)
 
     def add(
         self,
         arm: int,
         reward: float,
         cost: float = 0.0,
-        context: Optional[np.ndarray] = None,
-    ):
+        context: np.ndarray | None = None,
+    ) -> None:
         """Add a single observation to history."""
         self.arms.append(arm)
         self.rewards.append(reward)
@@ -85,8 +86,8 @@ class Result:
     """
 
     history: History
-    policy_state: Dict[str, Any]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    policy_state: dict[str, Any]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def n_steps(self) -> int:
@@ -109,7 +110,7 @@ class Result:
         return self.total_reward / self.n_steps if self.n_steps > 0 else 0.0
 
     @property
-    def cumulative_regret(self) -> Optional[np.ndarray]:
+    def cumulative_regret(self) -> np.ndarray | None:
         """Cumulative regret over time (if optimal reward known)."""
         if "optimal_reward" not in self.metadata:
             return None
@@ -118,7 +119,7 @@ class Result:
         return np.cumsum(optimal_rewards - self.history.rewards_array)
 
     @property
-    def final_regret(self) -> Optional[float]:
+    def final_regret(self) -> float | None:
         """Final cumulative regret."""
         regret = self.cumulative_regret
         return float(regret[-1]) if regret is not None else None
@@ -129,26 +130,26 @@ class Result:
         return int(np.argmax(self.policy_state["values"]))
 
     @property
-    def confidence(self) -> Optional[float]:
+    def confidence(self) -> float | None:
         """Confidence in best arm (if available)."""
         return self.metadata.get("confidence")
 
     @property
-    def group_shares(self) -> Optional[np.ndarray]:
+    def group_shares(self) -> np.ndarray | None:
         """Group representation shares (if applicable)."""
         return self.metadata.get("group_shares")
 
     @property
-    def estimation_variance(self) -> Optional[float]:
+    def estimation_variance(self) -> float | None:
         """Estimation variance (if applicable)."""
         return self.metadata.get("estimation_variance")
 
     def plot(
         self,
         metric: str = "cumulative_reward",
-        ax: Optional[plt.Axes] = None,
-        annotation: Optional[str] = "",
-        **kwargs,
+        ax: plt.Axes | None = None,
+        annotation: str | None = "",
+        **kwargs: Any,
     ) -> plt.Axes:
         """
         Plot results.
@@ -204,7 +205,7 @@ class Result:
 
         return ax
 
-    def summary(self) -> Dict[str, Any]:
+    def summary(self) -> dict[str, Any]:
         """
         Get summary statistics.
 

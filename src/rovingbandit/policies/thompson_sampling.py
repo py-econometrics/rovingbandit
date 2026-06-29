@@ -1,7 +1,9 @@
 """Thompson Sampling policy."""
 
-from typing import Optional, Dict, Any
+from typing import Any
+
 import numpy as np
+
 from rovingbandit.core.policy import Policy
 
 
@@ -26,8 +28,8 @@ class ThompsonSampling(Policy):
         n_arms: int,
         prior_alpha: float = 1.0,
         prior_beta: float = 1.0,
-        seed: Optional[int] = None,
-    ):
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize Thompson Sampling policy.
 
@@ -45,7 +47,7 @@ class ThompsonSampling(Policy):
         self.successes = np.zeros(n_arms)
         self.failures = np.zeros(n_arms)
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm using Thompson Sampling.
 
@@ -63,7 +65,7 @@ class ThompsonSampling(Policy):
         # Select arm with highest sample
         return int(np.argmax(samples))
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update posterior distributions.
 
@@ -100,7 +102,7 @@ class ThompsonSampling(Policy):
 
         return samples
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get state including posterior parameters."""
         state = super().get_state()
         state.update(
@@ -113,7 +115,7 @@ class ThompsonSampling(Policy):
         )
         return state
 
-    def set_state(self, state: Dict[str, Any]):
+    def set_state(self, state: dict[str, Any]) -> None:
         """Restore state including posterior parameters."""
         super().set_state(state)
         self.successes = state["successes"].copy()
@@ -121,7 +123,7 @@ class ThompsonSampling(Policy):
         self.prior_alpha = state["prior_alpha"]
         self.prior_beta = state["prior_beta"]
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset policy to initial state."""
         super().reset()
         self.successes = np.zeros(self.n_arms)

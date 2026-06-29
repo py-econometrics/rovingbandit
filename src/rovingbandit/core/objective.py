@@ -1,10 +1,10 @@
 """Objective functions for bandit algorithms."""
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any
-import numpy as np
-from rovingbandit.core.result import History
+from typing import Any
+
 from rovingbandit.core.policy import Policy
+from rovingbandit.core.result import History
 
 
 class Objective(ABC):
@@ -15,7 +15,7 @@ class Objective(ABC):
     """
 
     @abstractmethod
-    def compute_metric(self, history: History, **kwargs) -> float:
+    def compute_metric(self, history: History, **kwargs: Any) -> float:
         """
         Compute objective-specific performance metric.
 
@@ -29,7 +29,7 @@ class Objective(ABC):
         pass
 
     @abstractmethod
-    def stopping_criterion(self, policy: Policy, history: History, **kwargs) -> bool:
+    def stopping_criterion(self, policy: Policy, history: History, **kwargs: Any) -> bool:
         """
         Determine if objective is satisfied (for early stopping).
 
@@ -43,7 +43,7 @@ class Objective(ABC):
         """
         pass
 
-    def get_metadata(self, policy: Policy, history: History, **kwargs) -> Dict[str, Any]:
+    def get_metadata(self, policy: Policy, history: History, **kwargs: Any) -> dict[str, Any]:
         """
         Get objective-specific metadata for results.
 

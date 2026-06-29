@@ -1,10 +1,12 @@
 """Variance minimization objective."""
 
-from typing import Dict, Any, Optional
+from typing import Any
+
 import numpy as np
+
 from rovingbandit.core.objective import Objective
-from rovingbandit.core.result import History
 from rovingbandit.core.policy import Policy
+from rovingbandit.core.result import History
 
 
 class VarianceMinimization(Objective):
@@ -19,9 +21,9 @@ class VarianceMinimization(Objective):
 
     def __init__(
         self,
-        target_shares: Optional[np.ndarray] = None,
+        target_shares: np.ndarray | None = None,
         welfare_threshold: float = 0.0,
-    ):
+    ) -> None:
         """
         Initialize variance minimization objective.
 
@@ -35,9 +37,9 @@ class VarianceMinimization(Objective):
     def compute_metric(
         self,
         history: History,
-        policy: Policy = None,
-        arm_groups: np.ndarray = None,
-        **kwargs,
+        policy: Policy | None = None,
+        arm_groups: np.ndarray | None = None,
+        **kwargs: Any,
     ) -> float:
         """
         Compute estimation variance.
@@ -65,9 +67,7 @@ class VarianceMinimization(Objective):
 
         return total_variance
 
-    def stopping_criterion(
-        self, policy: Policy, history: History, **kwargs
-    ) -> bool:
+    def stopping_criterion(self, policy: Policy, history: History, **kwargs: Any) -> bool:
         """
         Variance minimization typically runs for fixed horizon.
 
@@ -80,9 +80,9 @@ class VarianceMinimization(Objective):
         self,
         policy: Policy,
         history: History,
-        arm_groups: np.ndarray = None,
-        **kwargs,
-    ) -> Dict[str, Any]:
+        arm_groups: np.ndarray | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         """
         Return variance and group shares.
 

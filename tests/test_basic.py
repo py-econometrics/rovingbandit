@@ -4,26 +4,26 @@ import numpy as np
 import pytest
 
 from rovingbandit import (
-    BanditEnvironment,
-    RandomPolicy,
-    GreedyPolicy,
-    EpsilonGreedy,
-    ExploreFirst,
-    UCB1,
-    BudgetedUCB,
-    ThompsonSampling,
-    BudgetedThompsonSampling,
-    EpsilonNeymanAllocation,
     LUCB,
+    UCB1,
+    BanditEnvironment,
+    BatchedRunner,
+    BestArmIdentification,
+    BudgetedThompsonSampling,
+    BudgetedUCB,
+    EpsilonGreedy,
+    EpsilonNeymanAllocation,
+    ExploreFirst,
+    GreedyPolicy,
     KasySautmann,
     LinUCB,
-    RepresentationBandit,
-    TopTwoThompson,
-    RegretMinimization,
-    BestArmIdentification,
-    VarianceMinimization,
     OnlineRunner,
-    BatchedRunner,
+    RandomPolicy,
+    RegretMinimization,
+    RepresentationBandit,
+    ThompsonSampling,
+    TopTwoThompson,
+    VarianceMinimization,
 )
 
 
@@ -118,7 +118,7 @@ class TestPolicies:
         """Test UCB1 policy."""
         policy = UCB1(n_arms=5, seed=42)
 
-        for i in range(10):
+        for _ in range(10):
             arm = policy.select_arm()
             policy.update(arm, np.random.random())
 
@@ -127,10 +127,10 @@ class TestPolicies:
     def test_budgeted_ucb(self):
         """Test Budgeted UCB policy."""
         policy = BudgetedUCB(n_arms=3, seed=42)
-        
+
         # Test initialization
         assert np.all(policy.avg_costs == 0.0)
-        
+
         # Pull each arm once
         for i in range(3):
             arm = policy.select_arm()
@@ -141,17 +141,17 @@ class TestPolicies:
             costs = [1.0, 10.0, 1.0]
             rewards = [1.0, 1.0, 0.0]
             policy.update(arm, rewards[i], costs[i])
-            
+
         # Verify updates
         assert np.allclose(policy.avg_costs, [1.0, 10.0, 1.0])
         assert np.allclose(policy.values, [1.0, 1.0, 0.0])
-        
+
         # Next pull should favor arm 0 (high value / low cost) over arm 1 (high value / high cost)
         # UCB numerator will be similar for arm 0 and 1, but cost divides it.
         # Arm 0 score ~ (1 + bonus) / 1
         # Arm 1 score ~ (1 + bonus) / 10
         # Arm 2 score ~ (0 + bonus) / 1
-        
+
         arm = policy.select_arm()
         assert arm == 0
 
@@ -185,12 +185,12 @@ class TestPolicies:
         # Posterior means: ~0.9 and ~0.5
         # Ratios: ~0.09 and ~0.5
         # Should pick arm 1 consistently
-        
+
         counts = np.zeros(2)
         for _ in range(20):
             arm = policy.select_arm()
             counts[arm] += 1
-            
+
         assert counts[1] > counts[0]
 
     def test_representation_bandit(self):
@@ -199,40 +199,40 @@ class TestPolicies:
         # Costs equal.
         # Target shares: 0.2 (Group 0), 0.8 (Group 1).
         # Initially, it should favor Arm 1 (Group 1) if shares are unbalanced.
-        
+
         arm_groups = np.array([0, 1])
         target_shares = np.array([0.2, 0.8])
         costs = np.array([1.0, 1.0])
         total_budget = 100.0
-        
+
         policy = RepresentationBandit(
             n_arms=2,
             arm_groups=arm_groups,
             target_shares=target_shares,
             total_budget=total_budget,
             costs=costs,
-            seed=42
+            seed=42,
         )
-        
+
         # Simulate equal pulls (50/50 split), which is over-representation for Group 0 (target 0.2)
         policy.counts[0] = 50
         policy.counts[1] = 50
         policy.total_pulls = 100
-        policy.total_cost_incurred = 50.0 # 50% budget spent
-        
+        policy.total_cost_incurred = 50.0  # 50% budget spent
+
         # Group 0 Share: 0.5. Target 0.2. Over by 0.3.
         # Group 1 Share: 0.5. Target 0.8. Under by 0.3.
-        
+
         # Cost adjustment:
         # Group 0: 1.0 * (1 + 0.5 * 0.3)^2 = 1.0 * (1.15)^2 = 1.32
         # Group 1: 1.0 * (1 + 0.5 * -0.3)^2 = 1.0 * (0.85)^2 = 0.72
-        
+
         # Ratio for Arm 0 will be penalized. Ratio for Arm 1 boosted.
-        
+
         # Set posteriors equal
         policy.successes[:] = 10
         policy.failures[:] = 10
-        
+
         # Should pick Arm 1
         arm = policy.select_arm()
         assert arm == 1
@@ -324,9 +324,7 @@ class TestPolicies:
 
     def test_epsilon_neyman_allocation(self):
         """Test epsilon-Neyman allocation policy."""
-        policy = EpsilonNeymanAllocation(
-            n_arms=3, exploration_fraction=0.2, horizon=50, seed=42
-        )
+        policy = EpsilonNeymanAllocation(n_arms=3, exploration_fraction=0.2, horizon=50, seed=42)
 
         # Exploration phase should return a valid arm
         arm = policy.select_arm()
@@ -469,7 +467,7 @@ class TestEndToEnd:
             result = runner.run(policy, env, n_steps=500, objective=objective)
             results[name] = result
 
-        for name, result in results.items():
+        for result in results.values():
             assert result.final_regret is not None
             assert result.final_regret >= 0
 
@@ -484,14 +482,10 @@ class TestEndToEnd:
         )
 
         policy = ThompsonSampling(n_arms=3, seed=42)
-        objective = BestArmIdentification(
-            confidence_threshold=0.9, n_mc_samples=500, seed=42
-        )
+        objective = BestArmIdentification(confidence_threshold=0.9, n_mc_samples=500, seed=42)
         runner = OnlineRunner()
 
-        result = runner.run(
-            policy, env, n_steps=1000, objective=objective, early_stopping=True
-        )
+        result = runner.run(policy, env, n_steps=1000, objective=objective, early_stopping=True)
 
         assert result.n_steps <= 1000
         assert result.metadata["confidence"] >= 0.9

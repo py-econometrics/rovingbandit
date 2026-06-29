@@ -1,7 +1,9 @@
 """Budgeted UCB policy."""
 
-from typing import Optional, Dict, Any
+from typing import Any
+
 import numpy as np
+
 from rovingbandit.policies.ucb import UCB1
 
 
@@ -19,8 +21,8 @@ class BudgetedUCB(UCB1):
         self,
         n_arms: int,
         exploration_factor: float = 2.0,
-        seed: Optional[int] = None,
-    ):
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize BudgetedUCB policy.
 
@@ -32,7 +34,7 @@ class BudgetedUCB(UCB1):
         super().__init__(n_arms, exploration_factor, seed)
         self.avg_costs = np.zeros(n_arms)
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm using Budgeted UCB strategy.
 
@@ -61,7 +63,7 @@ class BudgetedUCB(UCB1):
         best_arms = np.where(budgeted_scores == max_score)[0]
         return int(self.rng.choice(best_arms))
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update counts, value estimates, and cost estimates.
 
@@ -80,20 +82,22 @@ class BudgetedUCB(UCB1):
         # counts[arm] is already updated
         self.avg_costs[arm] += (cost - self.avg_costs[arm]) / self.counts[arm]
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get state including cost estimates."""
         state = super().get_state()
-        state.update({
-            "avg_costs": self.avg_costs.copy(),
-        })
+        state.update(
+            {
+                "avg_costs": self.avg_costs.copy(),
+            }
+        )
         return state
 
-    def set_state(self, state: Dict[str, Any]):
+    def set_state(self, state: dict[str, Any]) -> None:
         """Restore state including cost estimates."""
         super().set_state(state)
         self.avg_costs = state["avg_costs"].copy()
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset policy to initial state."""
         super().reset()
         self.avg_costs = np.zeros(self.n_arms)

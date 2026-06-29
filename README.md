@@ -8,10 +8,11 @@ The name is a nod to [Mancur Olson](https://www.jstor.org/stable/2938736).
 
 ## Installation
 
+Requires Python >= 3.10.
+
 ```bash
 # Development installation
-uv venv
-uv pip install -e ".[dev]"
+make setup            # uv sync --extra dev
 
 # Production (when published)
 uv pip install rovingbandit
@@ -209,17 +210,20 @@ The set of policies is growing; see `SPEC.md` for planned additions. Basic struc
 ## Development
 
 ```bash
+# Install dev environment (uv + dev extras)
+make setup
+
 # Run tests
-uv run pytest
+make tests
 
-# With coverage
-uv run pytest --cov=rovingbandit --cov-report=html
-
-# Code quality
-ruff check .
-ruff format .
-mypy src/
+# Run all pre-commit hooks (ruff, ty, ...) via prek
+make lint            # uv run prek run --all-files
 ```
+
+Code quality is enforced with [ruff](https://docs.astral.sh/ruff/) (lint + format) and
+[ty](https://github.com/astral-sh/ty) (type checking), orchestrated by
+[prek](https://github.com/j178/prek) using `.pre-commit-config.yaml`. CI runs the hooks and
+the test suite (Python 3.10 and 3.14) on every push and pull request.
 
 ## Key Features
 

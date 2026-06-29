@@ -1,7 +1,7 @@
 """Explore-first (explore-then-commit) policy."""
 
-from typing import Optional
 import numpy as np
+
 from rovingbandit.core.policy import Policy
 
 
@@ -19,9 +19,9 @@ class ExploreFirst(Policy):
         self,
         n_arms: int,
         exploration_fraction: float = 0.1,
-        horizon: Optional[int] = None,
-        seed: Optional[int] = None,
-    ):
+        horizon: int | None = None,
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize explore-first policy.
 
@@ -35,7 +35,7 @@ class ExploreFirst(Policy):
         self.exploration_fraction = exploration_fraction
         self.horizon = horizon
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm using explore-first strategy.
 
@@ -63,7 +63,7 @@ class ExploreFirst(Policy):
                     return self._select_random_arm()
                 return self._select_greedy_arm()
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update counts and value estimates.
 
@@ -76,7 +76,7 @@ class ExploreFirst(Policy):
         self.total_pulls += 1
         self._update_value_incremental(arm, reward)
 
-    def set_horizon(self, horizon: int):
+    def set_horizon(self, horizon: int) -> None:
         """
         Set the horizon (useful when it's determined at runtime).
 

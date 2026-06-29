@@ -1,10 +1,12 @@
 """Regret minimization objective."""
 
-from typing import Dict, Any
+from typing import Any
+
 import numpy as np
+
 from rovingbandit.core.objective import Objective
-from rovingbandit.core.result import History
 from rovingbandit.core.policy import Policy
+from rovingbandit.core.result import History
 
 
 class RegretMinimization(Objective):
@@ -16,7 +18,7 @@ class RegretMinimization(Objective):
     Reference: Lai & Robbins (1985), Auer et al. (2002)
     """
 
-    def __init__(self, optimal_reward: float = None):
+    def __init__(self, optimal_reward: float | None = None) -> None:
         """
         Initialize regret minimization objective.
 
@@ -25,7 +27,9 @@ class RegretMinimization(Objective):
         """
         self.optimal_reward = optimal_reward
 
-    def compute_metric(self, history: History, optimal_reward: float = None, **kwargs) -> float:
+    def compute_metric(
+        self, history: History, optimal_reward: float | None = None, **kwargs: Any
+    ) -> float:
         """
         Compute cumulative regret.
 
@@ -46,7 +50,7 @@ class RegretMinimization(Objective):
         regret = np.sum(optimal_rewards - history.rewards_array)
         return float(regret)
 
-    def stopping_criterion(self, policy: Policy, history: History, **kwargs) -> bool:
+    def stopping_criterion(self, policy: Policy, history: History, **kwargs: Any) -> bool:
         """
         Regret minimization typically runs for fixed horizon.
 
@@ -55,7 +59,7 @@ class RegretMinimization(Objective):
         """
         return False
 
-    def get_metadata(self, policy: Policy, history: History, **kwargs) -> Dict[str, Any]:
+    def get_metadata(self, policy: Policy, history: History, **kwargs: Any) -> dict[str, Any]:
         """Return optimal reward for regret calculation."""
         if self.optimal_reward is not None:
             return {"optimal_reward": self.optimal_reward}

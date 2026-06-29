@@ -1,7 +1,9 @@
 """Epsilon-Neyman allocation policy for variance minimization."""
 
-from typing import Optional, Dict, Any
+from typing import Any
+
 import numpy as np
+
 from rovingbandit.core.policy import Policy
 
 
@@ -25,10 +27,10 @@ class EpsilonNeymanAllocation(Policy):
         self,
         n_arms: int,
         exploration_fraction: float = 0.2,
-        horizon: Optional[int] = None,
+        horizon: int | None = None,
         min_variance: float = 1e-6,
-        seed: Optional[int] = None,
-    ):
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize epsilon-Neyman policy.
 
@@ -45,9 +47,9 @@ class EpsilonNeymanAllocation(Policy):
         self.exploration_fraction = exploration_fraction
         self.horizon = horizon
         self.min_variance = min_variance
-        self._last_probabilities: Optional[np.ndarray] = None
+        self._last_probabilities: np.ndarray | None = None
 
-    def set_horizon(self, horizon: int):
+    def set_horizon(self, horizon: int) -> None:
         """Set the planning horizon (used by OnlineRunner)."""
         self.horizon = horizon
 
@@ -66,11 +68,11 @@ class EpsilonNeymanAllocation(Policy):
         self._last_probabilities = probabilities
         return probabilities
 
-    def get_allocation_probabilities(self) -> Optional[np.ndarray]:
+    def get_allocation_probabilities(self) -> np.ndarray | None:
         """Return last computed allocation probabilities (if any)."""
         return self._last_probabilities
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm using epsilon-Neyman strategy.
 
@@ -90,7 +92,7 @@ class EpsilonNeymanAllocation(Policy):
         probabilities = self._allocation_probabilities()
         return int(self.rng.choice(self.n_arms, p=probabilities))
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update counts and value estimates.
 
@@ -103,7 +105,7 @@ class EpsilonNeymanAllocation(Policy):
         self.total_pulls += 1
         self._update_value_incremental(arm, reward)
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get state including exploration settings."""
         state = super().get_state()
         state.update(
@@ -118,7 +120,7 @@ class EpsilonNeymanAllocation(Policy):
         )
         return state
 
-    def set_state(self, state: Dict[str, Any]):
+    def set_state(self, state: dict[str, Any]) -> None:
         """Restore state including exploration settings."""
         super().set_state(state)
         self.exploration_fraction = state["exploration_fraction"]
@@ -130,7 +132,7 @@ class EpsilonNeymanAllocation(Policy):
             else state["allocation_probabilities"].copy()
         )
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset policy state."""
         super().reset()
         self._last_probabilities = None

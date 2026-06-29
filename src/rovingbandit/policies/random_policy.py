@@ -1,7 +1,7 @@
 """Random policy - uniform random arm selection."""
 
-from typing import Optional
 import numpy as np
+
 from rovingbandit.core.policy import Policy
 
 
@@ -12,7 +12,7 @@ class RandomPolicy(Policy):
     Serves as baseline for comparison.
     """
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm uniformly at random.
 
@@ -24,7 +24,7 @@ class RandomPolicy(Policy):
         """
         return self._select_random_arm()
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update counts and value estimates.
 

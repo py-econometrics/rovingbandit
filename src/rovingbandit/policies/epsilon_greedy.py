@@ -1,7 +1,7 @@
 """Epsilon-greedy policy."""
 
-from typing import Optional
 import numpy as np
+
 from rovingbandit.core.policy import Policy
 
 
@@ -20,8 +20,8 @@ class EpsilonGreedy(Policy):
         n_arms: int,
         epsilon: float = 0.1,
         decay: bool = False,
-        seed: Optional[int] = None,
-    ):
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize epsilon-greedy policy.
 
@@ -36,7 +36,7 @@ class EpsilonGreedy(Policy):
         self.epsilon = epsilon
         self.decay = decay
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm using epsilon-greedy strategy.
 
@@ -59,7 +59,7 @@ class EpsilonGreedy(Policy):
                 return self._select_random_arm()
             return self._select_greedy_arm()
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update counts and value estimates.
 

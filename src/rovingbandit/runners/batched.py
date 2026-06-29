@@ -1,11 +1,9 @@
 """Batched runner for parallel decision-making."""
 
-from typing import Optional
-import numpy as np
 from rovingbandit.core.environment import BanditEnvironment
-from rovingbandit.core.policy import Policy
 from rovingbandit.core.objective import Objective
-from rovingbandit.core.result import Result, History
+from rovingbandit.core.policy import Policy
+from rovingbandit.core.result import History, Result
 
 
 class BatchedRunner:
@@ -22,7 +20,7 @@ class BatchedRunner:
         environment: BanditEnvironment,
         batch_size: int,
         n_batches: int,
-        objective: Optional[Objective] = None,
+        objective: Objective | None = None,
     ) -> Result:
         """
         Run policy in batched mode.
@@ -44,11 +42,12 @@ class BatchedRunner:
         history = History()
 
         # Set horizon for policies that need it
-        if hasattr(policy, "set_horizon"):
-            policy.set_horizon(batch_size * n_batches)
+        set_horizon = getattr(policy, "set_horizon", None)
+        if callable(set_horizon):
+            set_horizon(batch_size * n_batches)
 
         # Main loop over batches
-        for batch in range(n_batches):
+        for _ in range(n_batches):
             # Select arms for this batch
             arms_batch = []
             for _ in range(batch_size):
@@ -67,7 +66,7 @@ class BatchedRunner:
                 history.add(arm, reward, cost)
 
             # Update policy with all observations from batch
-            for arm, reward, cost in zip(arms_batch, rewards_batch, costs_batch):
+            for arm, reward, cost in zip(arms_batch, rewards_batch, costs_batch, strict=False):
                 policy.update(arm, reward, cost)
 
         # Collect metadata

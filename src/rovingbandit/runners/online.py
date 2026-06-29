@@ -1,11 +1,9 @@
 """Online runner for sequential decision-making."""
 
-from typing import Optional
-import numpy as np
 from rovingbandit.core.environment import BanditEnvironment
-from rovingbandit.core.policy import Policy
 from rovingbandit.core.objective import Objective
-from rovingbandit.core.result import Result, History
+from rovingbandit.core.policy import Policy
+from rovingbandit.core.result import History, Result
 
 
 class OnlineRunner:
@@ -20,7 +18,7 @@ class OnlineRunner:
         policy: Policy,
         environment: BanditEnvironment,
         n_steps: int,
-        objective: Optional[Objective] = None,
+        objective: Objective | None = None,
         early_stopping: bool = False,
     ) -> Result:
         """
@@ -43,11 +41,12 @@ class OnlineRunner:
         history = History()
 
         # Set horizon for policies that need it
-        if hasattr(policy, "set_horizon"):
-            policy.set_horizon(n_steps)
+        set_horizon = getattr(policy, "set_horizon", None)
+        if callable(set_horizon):
+            set_horizon(n_steps)
 
         # Main loop
-        for step in range(n_steps):
+        for _ in range(n_steps):
             # Retrieve contexts if available
             contexts = environment.get_contexts() if hasattr(environment, "get_contexts") else None
 
@@ -101,7 +100,7 @@ class OnlineRunner:
         policy: Policy,
         environment: BanditEnvironment,
         budget: float,
-        objective: Optional[Objective] = None,
+        objective: Objective | None = None,
         pay_on_success: bool = False,
     ) -> Result:
         """

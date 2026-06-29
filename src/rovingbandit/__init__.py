@@ -5,50 +5,46 @@ Supports multiple objectives (regret minimization, best-arm identification,
 variance minimization) in both online and batched modes.
 """
 
-from rovingbandit.core import (
-    BanditEnvironment,
-    Policy,
-    Objective,
-    Result,
-    History,
-)
-
-from rovingbandit.policies import (
-    RandomPolicy,
-    GreedyPolicy,
-    EpsilonGreedy,
-    ExploreFirst,
-    UCB1,
-    BudgetedUCB,
-    ThompsonSampling,
-    BudgetedThompsonSampling,
-    EpsilonNeymanAllocation,
-    LUCB,
-    KasySautmann,
-    LinUCB,
-    TopTwoThompson,
-    RepresentationBandit,
-)
-
-from rovingbandit.objectives import (
-    RegretMinimization,
-    BestArmIdentification,
-    VarianceMinimization,
-)
-
-from rovingbandit.runners import (
-    OnlineRunner,
-    BatchedRunner,
-)
-
 from rovingbandit.banditry import (
-    pick_arm,
-    sim_runner,
     arm_sequence,
-    pull_sequence,
     best_arm,
+    pick_arm,
+    pull_sequence,
     rep_bandit_cost,
     rep_bandit_rake,
+    sim_runner,
+)
+from rovingbandit.core import (
+    BanditEnvironment,
+    History,
+    Objective,
+    Policy,
+    Result,
+)
+from rovingbandit.objectives import (
+    BestArmIdentification,
+    RegretMinimization,
+    VarianceMinimization,
+)
+from rovingbandit.policies import (
+    LUCB,
+    UCB1,
+    BudgetedThompsonSampling,
+    BudgetedUCB,
+    EpsilonGreedy,
+    EpsilonNeymanAllocation,
+    ExploreFirst,
+    GreedyPolicy,
+    KasySautmann,
+    LinUCB,
+    RandomPolicy,
+    RepresentationBandit,
+    ThompsonSampling,
+    TopTwoThompson,
+)
+from rovingbandit.runners import (
+    BatchedRunner,
+    OnlineRunner,
 )
 
 __version__ = "0.1.0"

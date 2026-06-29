@@ -1,7 +1,9 @@
 """Budgeted Thompson Sampling policy."""
 
-from typing import Optional, Dict, Any
+from typing import Any
+
 import numpy as np
+
 from rovingbandit.policies.thompson_sampling import ThompsonSampling
 
 
@@ -26,11 +28,11 @@ class BudgetedThompsonSampling(ThompsonSampling):
     def __init__(
         self,
         n_arms: int,
-        costs: Optional[np.ndarray] = None,
+        costs: np.ndarray | None = None,
         prior_alpha: float = 1.0,
         prior_beta: float = 1.0,
-        seed: Optional[int] = None,
-    ):
+        seed: int | None = None,
+    ) -> None:
         """
         Initialize Budgeted Thompson Sampling.
 
@@ -51,7 +53,7 @@ class BudgetedThompsonSampling(ThompsonSampling):
         else:
             self.costs = np.ones(n_arms, dtype=float)
 
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select arm maximizing sample/cost ratio.
 
@@ -72,7 +74,7 @@ class BudgetedThompsonSampling(ThompsonSampling):
         # Select arm with highest ratio
         return int(np.argmax(ratios))
 
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update posterior distributions.
 
@@ -82,21 +84,23 @@ class BudgetedThompsonSampling(ThompsonSampling):
             cost: Cost incurred (can be used to update cost estimates if they were not fixed)
         """
         super().update(arm, reward, cost)
-        
+
         # If we wanted to learn costs (e.g. if self.costs was not provided initally),
-        # we could update self.costs here. 
+        # we could update self.costs here.
         # For now, we assume costs are provided or updated manually if needed,
         # to match the paper's Algorithm 2 which takes vector C as input.
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get state including costs."""
         state = super().get_state()
-        state.update({
-            "costs": self.costs.copy(),
-        })
+        state.update(
+            {
+                "costs": self.costs.copy(),
+            }
+        )
         return state
 
-    def set_state(self, state: Dict[str, Any]):
+    def set_state(self, state: dict[str, Any]) -> None:
         """Restore state including costs."""
         super().set_state(state)
         self.costs = state["costs"].copy()

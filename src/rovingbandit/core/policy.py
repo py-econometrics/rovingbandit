@@ -1,7 +1,8 @@
 """Base class for bandit policies."""
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any
+from typing import Any
+
 import numpy as np
 
 
@@ -17,7 +18,7 @@ class Policy(ABC):
     Subclasses implement select_arm() and update() methods.
     """
 
-    def __init__(self, n_arms: int, seed: Optional[int] = None):
+    def __init__(self, n_arms: int, seed: int | None = None) -> None:
         """
         Initialize policy.
 
@@ -32,7 +33,7 @@ class Policy(ABC):
         self.rng = np.random.default_rng(seed)
 
     @abstractmethod
-    def select_arm(self, context: Optional[np.ndarray] = None) -> int:
+    def select_arm(self, context: np.ndarray | None = None) -> int:
         """
         Select the next arm to pull.
 
@@ -45,7 +46,7 @@ class Policy(ABC):
         pass
 
     @abstractmethod
-    def update(self, arm: int, reward: float, cost: float = 0.0):
+    def update(self, arm: int, reward: float, cost: float = 0.0) -> None:
         """
         Update policy state after observing reward.
 
@@ -56,13 +57,13 @@ class Policy(ABC):
         """
         pass
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset policy to initial state."""
         self.counts = np.zeros(self.n_arms)
         self.values = np.zeros(self.n_arms)
         self.total_pulls = 0
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """
         Get current policy state for serialization.
 
@@ -76,7 +77,7 @@ class Policy(ABC):
             "total_pulls": self.total_pulls,
         }
 
-    def set_state(self, state: Dict[str, Any]):
+    def set_state(self, state: dict[str, Any]) -> None:
         """
         Restore policy state from serialization.
 
@@ -88,7 +89,7 @@ class Policy(ABC):
         self.values = state["values"].copy()
         self.total_pulls = state["total_pulls"]
 
-    def _update_value_incremental(self, arm: int, reward: float):
+    def _update_value_incremental(self, arm: int, reward: float) -> None:
         """
         Update value estimate using incremental mean formula.
 
