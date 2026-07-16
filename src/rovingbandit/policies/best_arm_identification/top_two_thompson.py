@@ -4,7 +4,8 @@ from typing import Any
 
 import numpy as np
 
-from rovingbandit.policies.thompson_sampling import ThompsonSampling
+from rovingbandit.core.exceptions import InvalidConfigurationError
+from rovingbandit.policies.regret_minimization.thompson_sampling import ThompsonSampling
 
 
 class TopTwoThompson(ThompsonSampling):
@@ -45,7 +46,7 @@ class TopTwoThompson(ThompsonSampling):
         """
         super().__init__(n_arms, prior_alpha, prior_beta, seed)
         if not 0.0 <= psi <= 1.0:
-            raise ValueError(f"psi must be between 0 and 1, got {psi}")
+            raise InvalidConfigurationError(f"psi must be between 0 and 1, got {psi}")
         self.psi = psi
         self.max_resamples = max_resamples
 

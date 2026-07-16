@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy as np
 
-from rovingbandit.policies.ucb import UCB1
+from rovingbandit.policies.regret_minimization.ucb import UCB1
 
 
 class BudgetedUCB(UCB1):

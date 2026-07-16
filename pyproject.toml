@@ -102,6 +102,7 @@ select = [
     "C4",   # flake8-comprehensions
     "UP",   # pyupgrade
     "ANN",  # flake8-annotations
+    "S",    # flake8-bandit
 ]
 ignore = [
     "E501",    # line too long (handled by formatter)
@@ -110,8 +111,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Unused imports in __init__.py
-"tests/**" = ["ANN"]  # tests need not be fully annotated
-"examples/**" = ["ANN"]  # example scripts need not be fully annotated
+"tests/**" = ["ANN", "S101"]  # tests need not be annotated and use assert by design
+"examples/**" = ["ANN", "S101"]  # example scripts need not be annotated and may use assert
 "src/rovingbandit/banditry.py" = ["ANN"]  # legacy backward-compat module
 
 [tool.ty.src]

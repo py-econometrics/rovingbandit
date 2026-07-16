@@ -4,6 +4,7 @@ from typing import Any
 
 import numpy as np
 
+from rovingbandit.core.exceptions import MissingConfigurationError
 from rovingbandit.core.objective import Objective
 from rovingbandit.core.policy import Policy
 from rovingbandit.core.result import History
@@ -56,7 +57,7 @@ class VarianceMinimization(Objective):
             Estimation variance
         """
         if policy is None:
-            raise ValueError("policy required for variance minimization")
+            raise MissingConfigurationError("policy required for variance minimization")
 
         # Compute variance of arm estimates
         variances = policy.values * (1 - policy.values)  # Bernoulli variance

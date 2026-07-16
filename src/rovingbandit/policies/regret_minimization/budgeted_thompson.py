@@ -4,7 +4,8 @@ from typing import Any
 
 import numpy as np
 
-from rovingbandit.policies.thompson_sampling import ThompsonSampling
+from rovingbandit.core.exceptions import InvalidConfigurationError
+from rovingbandit.policies.regret_minimization.thompson_sampling import ThompsonSampling
 
 
 class BudgetedThompsonSampling(ThompsonSampling):
@@ -48,7 +49,9 @@ class BudgetedThompsonSampling(ThompsonSampling):
         super().__init__(n_arms, prior_alpha, prior_beta, seed)
         if costs is not None:
             if len(costs) != n_arms:
-                raise ValueError(f"Length of costs ({len(costs)}) must match n_arms ({n_arms})")
+                raise InvalidConfigurationError(
+                    f"length of costs ({len(costs)}) must match n_arms ({n_arms})"
+                )
             self.costs = np.array(costs, dtype=float)
         else:
             self.costs = np.ones(n_arms, dtype=float)
