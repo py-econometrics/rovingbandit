@@ -1,0 +1,222 @@
+name: Build wheels
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without the leading v, e.g. 0.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.meta.outputs.ref }}
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+      publish: ${{ steps.meta.outputs.publish }}
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Prepare release ref
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force origin master --tags
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            if [[ "${GITHUB_REF_NAME}" != "master" ]]; then
+              echo "Run release dispatches from the master branch." >&2
+              exit 1
+            fi
+
+            version="${{ inputs.version }}"
+            if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([._+\-]?[0-9A-Za-z]+)*$ ]]; then
+              echo "Version must look like 0.1.0 or 0.1.0rc1, without a leading v." >&2
+              exit 1
+            fi
+            tag="v${version}"
+
+            if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+              echo "Tag ${tag} already exists." >&2
+              exit 1
+            fi
+
+            git checkout master
+            git pull --ff-only origin master
+
+            python - <<'PY'
+          import os
+          from pathlib import Path
+
+          version = os.environ["RELEASE_VERSION"]
+
+          pyproject = Path("pyproject.toml")
+          lines = pyproject.read_text().splitlines()
+          in_project = False
+          replaced = False
+          for i, line in enumerate(lines):
+              stripped = line.strip()
+              if stripped == "[project]":
+                  in_project = True
+                  continue
+              if stripped.startswith("[") and stripped != "[project]":
+                  in_project = False
+              if in_project and stripped.startswith("version = "):
+                  lines[i] = f'version = "{version}"'
+                  replaced = True
+                  break
+          if not replaced:
+              raise SystemExit("Could not find [project] version in pyproject.toml")
+          pyproject.write_text("\n".join(lines) + "\n")
+
+          init = Path("src/rovingbandit/__init__.py")
+          lines = init.read_text().splitlines()
+          replaced = False
+          for i, line in enumerate(lines):
+              if line.startswith("__version__ = "):
+                  lines[i] = f'__version__ = "{version}"'
+                  replaced = True
+                  break
+          if not replaced:
+              raise SystemExit("Could not find __version__ in src/rovingbandit/__init__.py")
+          init.write_text("\n".join(lines) + "\n")
+          PY
+
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+            git add pyproject.toml src/rovingbandit/__init__.py
+            if ! git diff --cached --quiet; then
+              git commit -m "Bump version to ${version}"
+              git push origin HEAD:master
+            else
+              echo "Version files already have ${version}; tagging current master."
+            fi
+
+            git tag -a "${tag}" -m "${tag}"
+            git push origin "${tag}"
+            ref="$(git rev-parse HEAD)"
+          else
+            tag="${GITHUB_REF_NAME}"
+            version="${tag#v}"
+            ref="${GITHUB_SHA}"
+          fi
+
+          echo "ref=${ref}" >> "${GITHUB_OUTPUT}"
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "publish=true" >> "${GITHUB_OUTPUT}"
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+
+  test:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.prepare.outputs.ref }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup environment
+        run: uv sync --extra dev
+
+      - name: Run tests
+        run: uv run pytest
+
+      - name: Run ruff
+        run: uv run ruff check .
+
+      - name: Run ty
+        run: uv run ty check
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.prepare.outputs.ref }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build distributions
+        run: uv build
+
+      - name: Check distributions
+        run: uvx --from twine twine check dist/*
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v6
+        with:
+          name: distributions
+          path: dist/*
+          if-no-files-found: error
+
+  publish-pypi:
+    if: needs.prepare.outputs.publish == 'true'
+    needs: [prepare, test, build]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v5
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+
+  release:
+    if: needs.prepare.outputs.publish == 'true'
+    needs: [prepare, test, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v5
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          files: dist/*

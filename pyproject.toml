@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "rovingbandit"
 version = "0.1.0"
 description = "A flexible library for multi-armed bandit algorithms supporting regret minimization, best-arm identification, and variance minimization"
-readme = "SPEC.md"
+readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
@@ -57,9 +57,9 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/apoorvalal/rovingbandit"
-Documentation = "https://github.com/apoorvalal/rovingbandit"
-Repository = "https://github.com/apoorvalal/rovingbandit"
+Homepage = "https://github.com/py-econometrics/rovingbandit"
+Documentation = "https://github.com/py-econometrics/rovingbandit"
+Repository = "https://github.com/py-econometrics/rovingbandit"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/rovingbandit"]

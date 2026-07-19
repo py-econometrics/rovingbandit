@@ -1,6 +1,6 @@
 # `RovingBandit`
 
-![](img/header_art.png)
+![](https://raw.githubusercontent.com/py-econometrics/rovingbandit/master/img/header_art.png)
 
 A flexible Python library for multi-armed bandit algorithms supporting regret minimization, best-arm identification, and variance minimization in both online and batched modes.
 
@@ -87,7 +87,7 @@ axes[1].set_title("Average Reward Over Time")
 
 ```
 
-![](examples/example_1_regret_minimization.png)
+![](https://raw.githubusercontent.com/py-econometrics/rovingbandit/master/examples/example_1_regret_minimization.png)
 
 We can also visualize the sequence of arms pulled by each policy:
 
@@ -105,7 +105,7 @@ f.delaxes(ax[2, 1]) # delete unused subplots
 f.tight_layout()
 ```
 
-![](examples/example_1_arm_pulls.png)
+![](https://raw.githubusercontent.com/py-econometrics/rovingbandit/master/examples/example_1_arm_pulls.png)
 
 ## Implementation Status
 
